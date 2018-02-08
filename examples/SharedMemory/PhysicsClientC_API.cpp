@@ -310,6 +310,74 @@ B3_SHARED_API int b3LoadSoftBodySetCollisionMargin(b3SharedMemoryCommandHandle c
     return 0;
 }
 
+B3_SHARED_API b3SharedMemoryCommandHandle b3CreateClothCommandInit(b3PhysicsClientHandle physClient, double corners[], int resolution[], int fixedCorners)
+{
+	PhysicsClient* cl = (PhysicsClient* ) physClient;
+	b3Assert(cl);
+	b3Assert(cl->canSubmitCommand());
+	if (cl->canSubmitCommand())
+	{
+		struct SharedMemoryCommand* command = cl->getAvailableSharedMemoryCommand();
+		command->m_updateFlags = 0;
+		b3Assert(command);
+		command->m_type = CMD_CREATE_CLOTH;
+		for (int i = 0; i < 12; ++i) {
+			command->m_createClothArguments.m_corners[i] = corners[i];
+		}
+		for (int i = 0; i < 2; ++i) {
+			command->m_createClothArguments.m_resolution[i] = resolution[i];
+		}
+		command->m_createClothArguments.m_fixedCorners = fixedCorners;
+		return (b3SharedMemoryCommandHandle) command;
+	}
+	return 0;
+}
+
+B3_SHARED_API int b3CreateClothSetMass(b3SharedMemoryCommandHandle commandHandle, double mass)
+{
+    struct SharedMemoryCommand* command = (struct SharedMemoryCommand*) commandHandle;
+    b3Assert(command->m_type == CMD_CREATE_CLOTH);
+    command->m_createClothArguments.m_mass = mass;
+    command->m_updateFlags |= CREATE_CLOTH_UPDATE_MASS;
+    return 0;
+}
+
+B3_SHARED_API int b3CreateClothSetCollisionMargin(b3SharedMemoryCommandHandle commandHandle, double collisionMargin)
+{
+    struct SharedMemoryCommand* command = (struct SharedMemoryCommand*) commandHandle;
+    b3Assert(command->m_type == CMD_CREATE_CLOTH);
+    command->m_createClothArguments.m_collisionMargin = collisionMargin;
+    command->m_updateFlags |= CREATE_CLOTH_UPDATE_COLLISION_MARGIN;
+    return 0;
+}
+
+B3_SHARED_API int b3CreateClothSetDamping(b3SharedMemoryCommandHandle commandHandle, double damping)
+{
+    struct SharedMemoryCommand* command = (struct SharedMemoryCommand*) commandHandle;
+    b3Assert(command->m_type == CMD_CREATE_CLOTH);
+    command->m_createClothArguments.m_damping = damping;
+    command->m_updateFlags |= CREATE_CLOTH_UPDATE_DAMPING;
+    return 0;
+}
+
+B3_SHARED_API int b3CreateClothSetAngularStiffness(b3SharedMemoryCommandHandle commandHandle, double angularStiffness)
+{
+    struct SharedMemoryCommand* command = (struct SharedMemoryCommand*) commandHandle;
+    b3Assert(command->m_type == CMD_CREATE_CLOTH);
+    command->m_createClothArguments.m_angularStiffness = angularStiffness;
+    command->m_updateFlags |= CREATE_CLOTH_UPDATE_ANGULAR_STIFFNESS;
+    return 0;
+}
+
+B3_SHARED_API int b3CreateClothSetLinearStiffness(b3SharedMemoryCommandHandle commandHandle, double linearStiffness)
+{
+    struct SharedMemoryCommand* command = (struct SharedMemoryCommand*) commandHandle;
+    b3Assert(command->m_type == CMD_CREATE_CLOTH);
+    command->m_createClothArguments.m_linearStiffness = linearStiffness;
+    command->m_updateFlags |= CREATE_CLOTH_UPDATE_LINEAR_STIFFNESS;
+    return 0;
+}
+
 B3_SHARED_API int	b3LoadUrdfCommandSetUseMultiBody(b3SharedMemoryCommandHandle commandHandle, int useMultiBody)
 {
     struct SharedMemoryCommand* command = (struct SharedMemoryCommand*) commandHandle;
@@ -1761,6 +1829,11 @@ B3_SHARED_API int b3GetStatusBodyIndex(b3SharedMemoryStatusHandle statusHandle)
 				case CMD_LOAD_SOFT_BODY_COMPLETED:
 				{
 					bodyId  = status->m_loadSoftBodyResultArguments.m_objectUniqueId;
+					break;
+				}
+				case CMD_CREATE_CLOTH_COMPLETED:
+				{
+					bodyId  = status->m_createClothResultArguments.m_objectUniqueId;
 					break;
 				}
 				default:

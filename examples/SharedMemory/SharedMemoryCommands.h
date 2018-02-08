@@ -448,6 +448,15 @@ enum EnumLoadSoftBodyUpdateFlags
     LOAD_SOFT_BODY_UPDATE_COLLISION_MARGIN=8
 };
 
+enum EnumCreateClothUpdateFlags
+{
+	CREATE_CLOTH_UPDATE_MASS = 1,
+	CREATE_CLOTH_UPDATE_COLLISION_MARGIN = 2,
+	CREATE_CLOTH_UPDATE_DAMPING = 4,
+	CREATE_CLOTH_UPDATE_ANGULAR_STIFFNESS = 8,
+	CREATE_CLOTH_UPDATE_LINEAR_STIFFNESS = 16
+};
+
 enum EnumSimParamInternalSimFlags
 {
 	SIM_PARAM_INTERNAL_CREATE_ROBOT_ASSETS=1,
@@ -466,6 +475,23 @@ struct LoadSoftBodyArgs
 };
 
 struct b3LoadSoftBodyResultArgs
+{
+	int m_objectUniqueId;
+};
+
+struct CreateClothArgs
+{
+	double m_corners[12];  // 4 corners with 3 coords each
+	int m_resolution[2];
+	int m_fixedCorners;
+	double m_angularStiffness;
+	double m_linearStiffness;
+	double m_damping;
+	double m_mass;
+	double m_collisionMargin;
+};
+
+struct b3CreateClothResultArgs
 {
 	int m_objectUniqueId;
 };
@@ -1000,6 +1026,7 @@ struct SharedMemoryCommand
 		struct UserDebugDrawArgs m_userDebugDrawArgs;
 		struct RequestRaycastIntersections m_requestRaycastIntersections;
         struct LoadSoftBodyArgs m_loadSoftBodyArguments;
+        struct CreateClothArgs m_createClothArguments;
 		struct VRCameraState m_vrCameraStateArguments;
 		struct StateLoggingRequest m_stateLoggingArguments;
         struct ConfigureOpenGLVisualizerRequest m_configureOpenGLVisualizerArguments;
@@ -1089,6 +1116,7 @@ struct SharedMemoryStatus
 		struct b3PhysicsSimulationParameters m_simulationParameterResultArgs;
 		struct b3StateSerializationArguments m_saveStateResultArgs;
 		struct b3LoadSoftBodyResultArgs m_loadSoftBodyResultArguments;
+		struct b3CreateClothResultArgs m_createClothResultArguments;
 		struct SendCollisionShapeDataArgs m_sendCollisionShapeArgs;
 	};
 };

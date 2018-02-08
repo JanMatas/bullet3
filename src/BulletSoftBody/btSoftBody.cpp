@@ -3011,14 +3011,20 @@ void				btSoftBody::PSolve_Anchors(btSoftBody* psb,btScalar kst,btScalar ti)
 		const Anchor&		a=psb->m_anchors[i];
 		const btTransform&	t=a.m_body->getWorldTransform();
 		Node&				n=*a.m_node;
+		n.m_x = t.getOrigin() ; // HACK: make sure anchors have infinite force
 		const btVector3		wa=t*a.m_local;
 		const btVector3		va=a.m_body->getVelocityInLocalPoint(a.m_c1)*dt;
 		const btVector3		vb=n.m_x-n.m_q;
 		const btVector3		vr=(va-vb)+(wa-n.m_x)*kAHR;
 		const btVector3		impulse=a.m_c0*vr*a.m_influence;
-		n.m_x+=impulse*a.m_c2;
+		n.m_x[2]+=0.03;  // HACK: offset gravity
 		a.m_body->applyImpulse(-impulse,a.m_c1);
+
 	}
+}
+
+void btSoftBody::removeAllAnchors() {
+	m_anchors.clear();
 }
 
 

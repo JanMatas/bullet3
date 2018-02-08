@@ -219,7 +219,7 @@ struct InteralUserConstraintData
 {
 	btTypedConstraint* m_rbConstraint;
 	btMultiBodyConstraint* m_mbConstraint;
-
+	btSoftBody* anchoredSoftBody;
 	b3UserConstraint m_userConstraintData;
 
 	InteralUserConstraintData()
@@ -5845,7 +5845,9 @@ bool PhysicsServerCommandProcessor::processCreateClothCommand(const struct Share
 			clientCmd.m_createClothArguments.m_fixedCorners,
 			true);
 		psb->getCollisionShape()->setMargin(collisionMargin);
-		psb->getCollisionShape()->setUserPointer((void*)psb);
+		psb->getCollisionShape()->setBodyPointer((void*)psb);
+		m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
+		m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
 		btSoftBody::Material* pm = psb->appendMaterial();
 		pm->m_kLST = linearStiffness;
 		pm->m_kAST = angularStiffness;
@@ -7850,6 +7852,40 @@ bool PhysicsServerCommandProcessor::processCreateUserConstraintCommand(const str
 							}
 													
 						}
+					} else
+					{
+						btSoftBody* psb = (btSoftBody*)m_data->m_dynamicsWorld->getSoftBodyArray()[0];
+						int bestIndex = 0;
+						float bestDistance = 1000000;  // large num
+						for (int nodeIndex = 0; nodeIndex < psb->m_nodes.size(); nodeIndex++)
+						{
+							float distance = 0;
+							for (int axis = 0; axis < 3; axis++)
+							{
+								float d = psb->m_nodes[nodeIndex].m_x[axis] - parentRb->getCenterOfMassPosition()[axis];
+								distance += d * d;
+							}
+							if (distance < bestDistance)
+							{
+								bestIndex = nodeIndex;
+								bestDistance = distance;
+							}
+						}
+						btVector3 pivot(
+							parentRb->getCenterOfMassPosition()[0] - psb->m_nodes[bestIndex].m_x[0],
+							parentRb->getCenterOfMassPosition()[1] - psb->m_nodes[bestIndex].m_x[1],
+							parentRb->getCenterOfMassPosition()[2] - psb->m_nodes[bestIndex].m_x[2]
+
+						);
+						psb->appendAnchor(bestIndex,parentRb, pivot, false, 1.5);
+						InteralUserConstraintData userConstraintData;
+						userConstraintData.anchoredSoftBody = psb;
+						int uid = m_data->m_userConstraintUIDGenerator++;
+						serverCmd.m_userConstraintResultArgs = clientCmd.m_userConstraintArguments;
+						serverCmd.m_userConstraintResultArgs.m_userConstraintUniqueId = uid;
+						userConstraintData.m_userConstraintData = serverCmd.m_userConstraintResultArgs;
+						m_data->m_userConstraints.insert(uid,userConstraintData);
+						serverCmd.m_type = CMD_USER_CONSTRAINT_COMPLETED;
 					}
 
 					switch (clientCmd.m_userConstraintArguments.m_jointType)
@@ -8072,6 +8108,10 @@ bool PhysicsServerCommandProcessor::processCreateUserConstraintCommand(const str
 				m_data->m_dynamicsWorld->removeConstraint(userConstraintPtr->m_rbConstraint);
 				delete userConstraintPtr->m_rbConstraint;
 				m_data->m_userConstraints.remove(userConstraintUidRemove);	
+			}
+
+			if(userConstraintPtr->anchoredSoftBody) {
+				userConstraintPtr->anchoredSoftBody->removeAllAnchors();
 			}
 			serverCmd.m_userConstraintResultArgs.m_userConstraintUniqueId = userConstraintUidRemove;
 			serverCmd.m_type = CMD_REMOVE_USER_CONSTRAINT_COMPLETED;

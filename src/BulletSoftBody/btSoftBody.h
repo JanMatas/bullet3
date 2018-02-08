@@ -980,6 +980,7 @@ public:
 	void				applyClusters(bool drift);
 	void				dampClusters();
 	void				applyForces();	
+	void 				removeAllAnchors();
 	static void			PSolve_Anchors(btSoftBody* psb,btScalar kst,btScalar ti);
 	static void			PSolve_RContacts(btSoftBody* psb,btScalar kst,btScalar ti);
 	static void			PSolve_SContacts(btSoftBody* psb,btScalar,btScalar ti);

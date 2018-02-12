@@ -5786,6 +5786,7 @@ bool PhysicsServerCommandProcessor::processCreateClothCommand(const struct Share
 {
 	serverStatusOut.m_type = CMD_CREATE_CLOTH_FAILED;
 	bool hasStatus = true;
+	m_data->m_dynamicsWorld->setDrawFlags(0);
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
 	const CreateClothArgs& createClothArgs = clientCmd.m_createClothArguments;
 	if (m_data->m_verboseOutput)
@@ -5819,7 +5820,7 @@ bool PhysicsServerCommandProcessor::processCreateClothCommand(const struct Share
 		collisionMargin = clientCmd.m_createClothArguments.m_collisionMargin;
 	}
 
-	m_data->m_softBodyWorldInfo.air_density = (btScalar)5;
+	m_data->m_softBodyWorldInfo.air_density = (btScalar)1;
 	m_data->m_softBodyWorldInfo.water_density = 0;
 	m_data->m_softBodyWorldInfo.water_offset = 0;
 	m_data->m_softBodyWorldInfo.water_normal = btVector3(0, 0, 0);
@@ -5843,13 +5844,14 @@ bool PhysicsServerCommandProcessor::processCreateClothCommand(const struct Share
 			corners[0], corners[1], corners[2], corners[3],
 			clientCmd.m_createClothArguments.m_resolution[0], clientCmd.m_createClothArguments.m_resolution[1],
 			clientCmd.m_createClothArguments.m_fixedCorners,
-			true);
+			false);
 		psb->getCollisionShape()->setMargin(collisionMargin);
 		psb->getCollisionShape()->setBodyPointer((void*)psb);
 		m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
 		m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
 		btSoftBody::Material* pm = psb->appendMaterial();
 		pm->m_kLST = linearStiffness;
+		psb->m_cfg.collisions |= btSoftBody::fCollision::VF_SS;
 		pm->m_kAST = angularStiffness;
 		psb->generateBendingConstraints(2, pm);
 		psb->setTotalMass(mass);
@@ -7856,13 +7858,13 @@ bool PhysicsServerCommandProcessor::processCreateUserConstraintCommand(const str
 					{
 						btSoftBody* psb = (btSoftBody*)m_data->m_dynamicsWorld->getSoftBodyArray()[0];
 						int bestIndex = 0;
-						float bestDistance = 1000000;  // large num
+						float bestDistance = 10000;  // large num
 						for (int nodeIndex = 0; nodeIndex < psb->m_nodes.size(); nodeIndex++)
 						{
 							float distance = 0;
 							for (int axis = 0; axis < 3; axis++)
 							{
-								float d = psb->m_nodes[nodeIndex].m_x[axis] - parentRb->getCenterOfMassPosition()[axis];
+								float d = psb->m_nodes[nodeIndex].m_x[axis] - parentRb->getWorldTransform().getOrigin()[axis];
 								distance += d * d;
 							}
 							if (distance < bestDistance)
@@ -7871,12 +7873,15 @@ bool PhysicsServerCommandProcessor::processCreateUserConstraintCommand(const str
 								bestDistance = distance;
 							}
 						}
-						btVector3 pivot(
-							parentRb->getCenterOfMassPosition()[0] - psb->m_nodes[bestIndex].m_x[0],
-							parentRb->getCenterOfMassPosition()[1] - psb->m_nodes[bestIndex].m_x[1],
-							parentRb->getCenterOfMassPosition()[2] - psb->m_nodes[bestIndex].m_x[2]
+						// btVector3 pivot(
+						// 	parentRb->getCenterOfMassPosition()[0] - psb->m_nodes[bestIndex].m_x[0],
+						// 	parentRb->getCenterOfMassPosition()[1] - psb->m_nodes[bestIndex].m_x[1],
+						// 	parentRb->getCenterOfMassPosition()[2] - psb->m_nodes[bestIndex].m_x[2]
 
-						);
+						// );
+						btVector3 pivot(0, 0, 0);
+						b3Printf("Appenfing anchor (%g, %g, %g) - (%g, %g, %g)", parentRb->getWorldTransform().getOrigin()[0], parentRb->getWorldTransform().getOrigin()[1], parentRb->getWorldTransform().getOrigin()[2]
+							,psb->m_nodes[bestIndex].m_x[0],psb->m_nodes[bestIndex].m_x[1],psb->m_nodes[bestIndex].m_x[2])	;					
 						psb->appendAnchor(bestIndex,parentRb, pivot, false, 1.5);
 						InteralUserConstraintData userConstraintData;
 						userConstraintData.anchoredSoftBody = psb;

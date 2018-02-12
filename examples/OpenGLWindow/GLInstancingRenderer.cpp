@@ -1985,7 +1985,7 @@ void GLInstancingRenderer::renderSceneInternal(int orgRenderMode)
 	//glDepthFunc(GL_LESS);
 
 	// Cull triangles which normal is not towards the camera
-	glEnable(GL_CULL_FACE);
+	// glEnable(GL_CULL_FACE);
 
 
 
@@ -2006,8 +2006,8 @@ void GLInstancingRenderer::renderSceneInternal(int orgRenderMode)
 	// Compute the MVP matrix from the light's point of view
 	if (renderMode==B3_CREATE_SHADOWMAP_RENDERMODE)
 	{
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT);
+		// glEnable(GL_CULL_FACE);
+		// glCullFace(GL_FRONT);
 
 		if (!m_data->m_shadowMap)
 		{
@@ -2076,8 +2076,8 @@ void GLInstancingRenderer::renderSceneInternal(int orgRenderMode)
 	b3Assert(glGetError() ==GL_NO_ERROR);
 	} else
 	{
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
+		// glEnable(GL_CULL_FACE);
+		// glCullFace(GL_BACK);
 
 	}
 

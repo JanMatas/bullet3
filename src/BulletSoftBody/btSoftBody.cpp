@@ -71,7 +71,7 @@ void	btSoftBody::initDefaults()
 	m_cfg.kDP			=	0;
 	m_cfg.kPR			=	0;
 	m_cfg.kVC			=	0;
-	m_cfg.kDF			=	(btScalar)0.2;
+	m_cfg.kDF			=	(btScalar)0.9;
 	m_cfg.kMT			=	0;
 	m_cfg.kCHR			=	(btScalar)1.0;
 	m_cfg.kKHR			=	(btScalar)0.1;
@@ -85,9 +85,12 @@ void	btSoftBody::initDefaults()
 	m_cfg.kSS_SPLT_CL	=	(btScalar)0.5;
 	m_cfg.maxvolume		=	(btScalar)1;
 	m_cfg.timescale		=	1;
-	m_cfg.viterations	=	0;
-	m_cfg.piterations	=	1;	
-	m_cfg.diterations	=	0;
+	// m_cfg.viterations	=	0;
+	m_cfg.viterations	=	2;
+	// m_cfg.piterations	=	1;
+	m_cfg.piterations	=	7;	
+
+	m_cfg.diterations	=	2;
 	m_cfg.citerations	=	4;
 	m_cfg.collisions	=	fCollision::Default;
 	m_pose.m_bvolume	=	false;
@@ -1785,9 +1788,15 @@ void			btSoftBody::predictMotion(btScalar dt)
 				}
 			}
 		}
-		n.m_v	+=	deltaV;
-		n.m_x	+=	n.m_v*m_sst.sdt;
-		n.m_f	=	btVector3(0,0,0);
+		if (!n.disabled) {
+			n.m_v	+=	deltaV;
+			n.m_x	+=	n.m_v*m_sst.sdt;
+			n.m_f	=	btVector3(0,0,0);
+		} else {
+			n.disabled = false;
+		}
+
+
 	}
 	/* Clusters				*/ 
 	updateClusters();
@@ -3017,7 +3026,8 @@ void				btSoftBody::PSolve_Anchors(btSoftBody* psb,btScalar kst,btScalar ti)
 		const btVector3		vb=n.m_x-n.m_q;
 		const btVector3		vr=(va-vb)+(wa-n.m_x)*kAHR;
 		const btVector3		impulse=a.m_c0*vr*a.m_influence;
-		n.m_x[2]+=0.03;  // HACK: offset gravity
+		n.m_x[2]+=0.02;  // HACK: offset gravity
+		n.disabled = true;
 		a.m_body->applyImpulse(-impulse,a.m_c1);
 
 	}
@@ -3269,7 +3279,8 @@ void			btSoftBody::defaultCollisionHandler(btSoftBody* psb)
 	case	fCollision::VF_SS:
 		{
 			//only self-collision for Cluster, not Vertex-Face yet
-			if (this!=psb)
+			// if (this!=psb)
+			if (0)
 			{
 				btSoftColliders::CollideVF_SS	docollide;
 				/* common					*/ 

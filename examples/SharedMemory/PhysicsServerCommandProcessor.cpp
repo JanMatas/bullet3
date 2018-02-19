@@ -6,6 +6,8 @@
 #include "../Importers/ImportURDFDemo/URDF2Bullet.h"
 #include "../Extras/InverseDynamics/btMultiBodyTreeCreator.hpp"
 
+#include "BulletCollision/CollisionDispatch/btInternalEdgeUtility.h"
+
 #include "BulletDynamics/Featherstone/btMultiBodyConstraintSolver.h"
 #include "BulletDynamics/Featherstone/btMultiBodyPoint2Point.h"
 #include "BulletDynamics/Featherstone/btMultiBodyLinkCollider.h"
@@ -1536,7 +1538,6 @@ struct PhysicsServerCommandProcessorInternalData
 #ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
 	btSoftMultiBodyDynamicsWorld* m_dynamicsWorld;
     btSoftBodySolver* m_softbodySolver;
-    btSoftBodyWorldInfo	m_softBodyWorldInfo;
 #else
     btMultiBodyDynamicsWorld* m_dynamicsWorld;
 #endif
@@ -1727,6 +1728,7 @@ void logCallback(btDynamicsWorld *world, btScalar timeStep)
 
 bool MyContactAddedCallback(btManifoldPoint& cp,	const btCollisionObjectWrapper* colObj0Wrap,int partId0,int index0,const btCollisionObjectWrapper* colObj1Wrap,int partId1,int index1)
 {
+	btAdjustInternalEdgeContacts(cp, colObj1Wrap, colObj0Wrap, partId1,index1);
 	return true;
 }
 
@@ -2253,12 +2255,13 @@ void PhysicsServerCommandProcessor::createEmptyDynamicsWorld()
 	isPreTick = true;
 	m_data->m_dynamicsWorld->setInternalTickCallback(preTickCallback,this,isPreTick);
 
+	gContactAddedCallback = MyContactAddedCallback;
 
 #ifdef B3_ENABLE_TINY_AUDIO
 	m_data->m_soundEngine.init(16,true);
 
 //we don't use those callbacks (yet), experimental
-//	gContactAddedCallback = MyContactAddedCallback;
+
 //	gContactDestroyedCallback = MyContactDestroyedCallback;
 //	gContactProcessedCallback = MyContactProcessedCallback;
 //	gContactStartedCallback = MyContactStartedCallback;
@@ -2411,6 +2414,17 @@ void PhysicsServerCommandProcessor::deleteDynamicsWorld()
 	for (int j = 0; j<m_data->m_collisionShapes.size(); j++)
 	{
 		btCollisionShape* shape = m_data->m_collisionShapes[j];
+
+
+		//check for internal edge utility, delete memory
+		if (shape->getShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
+		{
+			btBvhTriangleMeshShape* trimesh = (btBvhTriangleMeshShape*) shape;
+			if (trimesh->getTriangleInfoMap())
+			{
+				delete trimesh->getTriangleInfoMap();
+			}
+		}
 		delete shape;
 	}
 	for (int j=0;j<m_data->m_meshInterfaces.size();j++)
@@ -3823,10 +3837,17 @@ bool PhysicsServerCommandProcessor::processCreateCollisionShapeCommand(const str
 							meshInterface->addTriangle(v0, v1, v2);
 						}
 					}
+
 					{
 						BT_PROFILE("create btBvhTriangleMeshShape");
 						btBvhTriangleMeshShape* trimesh = new btBvhTriangleMeshShape(meshInterface, true, true);
 						m_data->m_collisionShapes.push_back(trimesh);
+
+						if (clientCmd.m_createUserShapeArgs.m_shapes[i].m_collisionFlags & GEOM_CONCAVE_INTERNAL_EDGE)
+						{
+							btTriangleInfoMap* triangleInfoMap = new btTriangleInfoMap();
+							btGenerateInternalEdgeInfo(trimesh, triangleInfoMap);
+						}
 						//trimesh->setLocalScaling(collision->m_geometry.m_meshScale);
 						shape = trimesh;
 						if (compound)
@@ -5897,13 +5918,6 @@ bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct Shar
         collisionMargin = clientCmd.m_loadSoftBodyArguments.m_collisionMargin;
     }
 	
-    m_data->m_softBodyWorldInfo.air_density		=	(btScalar)1.2;
-    m_data->m_softBodyWorldInfo.water_density	=	0;
-    m_data->m_softBodyWorldInfo.water_offset	=	0;
-    m_data->m_softBodyWorldInfo.water_normal	=	btVector3(0,0,0);
-    m_data->m_softBodyWorldInfo.m_gravity.setValue(0,0,-10);
-    m_data->m_softBodyWorldInfo.m_broadphase = m_data->m_broadphase;
-    m_data->m_softBodyWorldInfo.m_sparsesdf.Initialize();
 	
 	{
 		char relativeFileName[1024];
@@ -5935,7 +5949,7 @@ bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct Shar
 			int numTris = indices.size()/3;
 			if (numTris>0)
 			{
-				btSoftBody*	psb=btSoftBodyHelpers::CreateFromTriMesh(m_data->m_softBodyWorldInfo,&vertices[0],&indices[0],numTris);
+				btSoftBody*	psb=btSoftBodyHelpers::CreateFromTriMesh(m_data->m_dynamicsWorld->getWorldInfo(),&vertices[0],&indices[0],numTris);
 				btSoftBody::Material*	pm=psb->appendMaterial();
 				pm->m_kLST				=	0.5;
 				pm->m_flags				-=	btSoftBody::fMaterial::DebugDraw;
@@ -5946,9 +5960,10 @@ bool PhysicsServerCommandProcessor::processLoadSoftBodyCommand(const struct Shar
 				psb->rotate(btQuaternion(0.70711,0,0,0.70711));
 				psb->translate(btVector3(-0.05,0,1.0));
 				psb->scale(btVector3(scale,scale,scale));
+				
 				psb->setTotalMass(mass,true);
 				psb->getCollisionShape()->setMargin(collisionMargin);
-				psb->getCollisionShape()->setBodyPointer(psb);
+				psb->getCollisionShape()->setUserPointer(psb);
 				m_data->m_dynamicsWorld->addSoftBody(psb);
 				m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
 				m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
@@ -6466,6 +6481,13 @@ bool PhysicsServerCommandProcessor::processChangeDynamicsInfoCommand(const struc
 					body->m_rigidBody->setMassProps(mass,newLocalInertiaDiagonal);
 				}
 			}
+
+			if (clientCmd.m_updateFlags & CHANGE_DYNAMICS_INFO_SET_CCD_SWEPT_SPHERE_RADIUS)
+			{
+				body->m_rigidBody->setCcdSweptSphereRadius(clientCmd.m_changeDynamicsInfoArgs.m_ccdSweptSphereRadius);
+				//for a given sphere radius, use a motion threshold of half the radius, before the ccd algorithm is enabled
+				body->m_rigidBody->setCcdMotionThreshold(clientCmd.m_changeDynamicsInfoArgs.m_ccdSweptSphereRadius/2.);
+			}
 		}
 	}
 					
@@ -6623,6 +6645,12 @@ bool PhysicsServerCommandProcessor::processSendPhysicsParametersCommand(const st
 	{
 		m_data->m_dynamicsWorld->getDispatchInfo().m_deterministicOverlappingPairs = (clientCmd.m_physSimParamArgs.m_deterministicOverlappingPairs!=0);
 	}
+
+	if (clientCmd.m_updateFlags&SIM_PARAM_UPDATE_CCD_ALLOWED_PENETRATION)
+	{
+		m_data->m_dynamicsWorld->getDispatchInfo().m_allowedCcdPenetration = clientCmd.m_physSimParamArgs.m_allowedCcdPenetration;
+	}
+
 	if (clientCmd.m_updateFlags&SIM_PARAM_UPDATE_DELTA_TIME)
 	{
 		m_data->m_physicsDeltaTime = clientCmd.m_physSimParamArgs.m_deltaTime;
@@ -6645,6 +6673,7 @@ bool PhysicsServerCommandProcessor::processSendPhysicsParametersCommand(const st
 						clientCmd.m_physSimParamArgs.m_gravityAcceleration[1],
 						clientCmd.m_physSimParamArgs.m_gravityAcceleration[2]);
 		this->m_data->m_dynamicsWorld->setGravity(grav);
+		m_data->m_dynamicsWorld->getWorldInfo().m_gravity=grav;
 		if (m_data->m_verboseOutput)
 		{
 			b3Printf("Updated Gravity: %f,%f,%f",grav[0],grav[1],grav[2]);

@@ -74,7 +74,7 @@ void	btSoftBody::initDefaults()
 	m_cfg.kDF			=	(btScalar)0.5;
 	m_cfg.kMT			=	0;
 	m_cfg.kCHR			=	(btScalar)1.0;
-	m_cfg.kKHR			=	(btScalar)0.1;
+	m_cfg.kKHR			=	(btScalar)1.0;
 	m_cfg.kSHR			=	(btScalar)1.0;
 	m_cfg.kAHR			=	(btScalar)0.7;
 	m_cfg.kSRHR_CL		=	(btScalar)0.1;

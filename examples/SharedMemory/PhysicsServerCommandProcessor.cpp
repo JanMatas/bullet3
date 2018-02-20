@@ -5841,13 +5841,6 @@ bool PhysicsServerCommandProcessor::processCreateClothCommand(const struct Share
 		collisionMargin = clientCmd.m_createClothArguments.m_collisionMargin;
 	}
 
-	m_data->m_softBodyWorldInfo.air_density = (btScalar)1;
-	m_data->m_softBodyWorldInfo.water_density = 0;
-	m_data->m_softBodyWorldInfo.water_offset = 0;
-	m_data->m_softBodyWorldInfo.water_normal = btVector3(0, 0, 0);
-	m_data->m_softBodyWorldInfo.m_gravity.setValue(0, 0, -10);
-	m_data->m_softBodyWorldInfo.m_broadphase = m_data->m_broadphase;
-	m_data->m_softBodyWorldInfo.m_sparsesdf.Initialize();
 	btVector3 corners[4];
 	int i;
 	for (i = 0; i < 4; i++)
@@ -5861,13 +5854,13 @@ bool PhysicsServerCommandProcessor::processCreateClothCommand(const struct Share
 
 	{
 		btSoftBody* psb = btSoftBodyHelpers::CreatePatch(
-			m_data->m_softBodyWorldInfo,
+			m_data->m_dynamicsWorld->getWorldInfo(),
 			corners[0], corners[1], corners[2], corners[3],
 			clientCmd.m_createClothArguments.m_resolution[0], clientCmd.m_createClothArguments.m_resolution[1],
 			clientCmd.m_createClothArguments.m_fixedCorners,
 			false);
 		psb->getCollisionShape()->setMargin(collisionMargin);
-		psb->getCollisionShape()->setBodyPointer((void*)psb);
+		psb->getCollisionShape()->setUserPointer((void*)psb);
 		m_data->m_guiHelper->createCollisionShapeGraphicsObject(psb->getCollisionShape());
 		m_data->m_guiHelper->autogenerateGraphicsObjects(this->m_data->m_dynamicsWorld);
 		btSoftBody::Material* pm = psb->appendMaterial();

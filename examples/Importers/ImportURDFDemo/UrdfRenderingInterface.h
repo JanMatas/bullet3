@@ -1,6 +1,9 @@
 #ifndef URDF_RENDERING_INTERFACE_H
 #define URDF_RENDERING_INTERFACE_H
+#include "../CommonInterfaces/CommonGUIHelperInterface.h"
 
+#include "LinearMath/btAlignedObjectArray.h"
+#include "../OpenGLWindow/GLInstanceGraphicsShape.h"
 ///UrdfLink and UrdfModel are the main URDF structures to define a robot
 struct UrdfLink;
 struct UrdfModel;
@@ -92,6 +95,7 @@ struct UrdfRenderingInterface
 	virtual int registerTexture(unsigned char* texels, int width, int height)=0;
 	
 	
+	virtual void registerMeshShape(int collisionObjectUniqueId, int bodyUniqueId,btAlignedObjectArray<GLInstanceVertex>& vertices, btAlignedObjectArray<int>& indices)=0;
 
 };
 

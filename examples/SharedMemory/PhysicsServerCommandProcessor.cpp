@@ -3232,7 +3232,39 @@ bool PhysicsServerCommandProcessor::processRequestCameraImageCommand(const struc
 
 					for (int i=0;i<m_data->m_dynamicsWorld->getNumCollisionObjects();i++)
 					{
-						const btCollisionObject* colObj = m_data->m_dynamicsWorld->getCollisionObjectArray()[i];
+						
+						btCollisionObject* colObj = m_data->m_dynamicsWorld->getCollisionObjectArray()[i];
+						btCollisionShape* collisionShape = colObj->getCollisionShape();
+						if (collisionShape->getShapeType()==SOFTBODY_SHAPE_PROXYTYPE && collisionShape->getUserIndex() >=0) {
+							btAlignedObjectArray<GLInstanceVertex> gfxVertices;
+							btAlignedObjectArray<int> indices;
+							b3Assert(collisionShape->getUserPointer());
+							btSoftBody* psb = (btSoftBody*)collisionShape->getUserPointer();
+							gfxVertices.resize(psb->m_faces.size() * 3);
+							int i, j, k;
+							for (i = 0; i < psb->m_faces.size(); i++)  // Foreach face
+							{
+								for (k = 0; k < 3; k++)  // Foreach vertex on a face
+								{
+									int currentIndex = i * 3 + k;
+									for (int j = 0; j < 3; j++)
+									{
+										gfxVertices[currentIndex].xyzw[j] = psb->m_faces[i].m_n[k]->m_x[j];
+									}
+									for (int j = 0; j < 3; j++)
+									{
+										gfxVertices[currentIndex].normal[j] = psb->m_faces[i].m_n[k]->m_n[j];
+									}
+									for (int j = 0; j < 2; j++)
+									{
+										gfxVertices[currentIndex].uv[j] = 0.5;  //we don't have UV info...
+									}
+									indices.push_back(currentIndex);
+								}
+							}
+							m_data->m_pluginManager.getRenderInterface()->registerMeshShape(i, i,gfxVertices, indices);
+							continue;
+						}
 						m_data->m_pluginManager.getRenderInterface()->syncTransform(colObj->getBroadphaseHandle()->getUid(),colObj->getWorldTransform(),colObj->getCollisionShape()->getLocalScaling());
 					}
 

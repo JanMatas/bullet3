@@ -548,8 +548,9 @@ void TinyRenderer::renderObject(TinyRenderObjectData& renderData)
 			btVector3 v1(shader.world_tri.col(1)[0], shader.world_tri.col(1)[1], shader.world_tri.col(1)[2]);
 			btVector3 v2(shader.world_tri.col(2)[0], shader.world_tri.col(2)[1], shader.world_tri.col(2)[2]);
 			btVector3 N = (v1-v0).cross(v2-v0);
-			if ((v0-P).dot(N) >= 0)
-				continue;
+
+			// if ((v0-P).dot(N) >= 0)
+			// 	continue;
 
 			mat<4,3,float> stackTris[3];
 

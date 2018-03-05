@@ -973,7 +973,7 @@ void TinyRendererVisualShapeConverter::render(const float viewMat[16], const flo
         {
             
             TinyRenderObjectData* renderObj = visualArray->m_renderObjects[v];
-            
+
             
             //sync the object transform
 			const btTransform& tr = visualArray->m_worldTransform;
@@ -1112,6 +1112,63 @@ void TinyRendererVisualShapeConverter::copyCameraImageData(unsigned char* pixels
             *numPixelsCopied = numRequestedPixels;
         
     }    
+}
+
+void TinyRendererVisualShapeConverter::registerMeshShape(int collisionObjectUniqueId, int bodyUniqueId,btAlignedObjectArray<GLInstanceVertex>& vertices, btAlignedObjectArray<int>& indices)
+
+{
+	removeVisualShape(collisionObjectUniqueId);
+
+	TinyRendererObjectArray** visualsPtr = m_data->m_swRenderInstances[collisionObjectUniqueId];
+    if (visualsPtr==0)
+    {
+        m_data->m_swRenderInstances.insert(collisionObjectUniqueId,new TinyRendererObjectArray);
+    }
+    int linkIndex = -1;
+    visualsPtr = m_data->m_swRenderInstances[collisionObjectUniqueId];
+    btAssert(visualsPtr);
+	btAlignedObjectArray<MyTexture2> textures;
+
+    TinyRendererObjectArray* visuals = *visualsPtr;
+	visuals->m_objectUniqueId = bodyUniqueId;
+    float rgbaColor[4] = {100,0,0,100};
+	b3VisualShapeData visualShape;
+	visualShape.m_objectUniqueId = bodyUniqueId;
+	visualShape.m_linkIndex = linkIndex;
+	visualShape.m_localVisualFrame[0] = 0;
+	visualShape.m_localVisualFrame[1] = 0;
+	visualShape.m_localVisualFrame[2] = 0;
+	visualShape.m_localVisualFrame[3] = 0;
+	visualShape.m_localVisualFrame[4] = 0;
+	visualShape.m_localVisualFrame[5] = 0;
+	visualShape.m_localVisualFrame[6] = 1;
+	visualShape.m_rgbaColor[0] = rgbaColor[0];
+	visualShape.m_rgbaColor[1] = rgbaColor[1];
+	visualShape.m_rgbaColor[2] = rgbaColor[2];
+	visualShape.m_rgbaColor[3] = rgbaColor[3];
+    if (vertices.size() && indices.size())
+    {
+        TinyRenderObjectData* tinyObj = new TinyRenderObjectData(m_data->m_rgbColorBuffer,m_data->m_depthBuffer, &m_data->m_shadowBuffer, &m_data->m_segmentationMaskBuffer, bodyUniqueId, linkIndex);
+		unsigned char* textureImage1=0;
+		int textureWidth=0;
+		int textureHeight=0;
+		bool isCached = false;
+		if (textures.size())
+		{
+			textureImage1 = textures[0].textureData1;
+			textureWidth = textures[0].m_width;
+			textureHeight = textures[0].m_height;
+			isCached = textures[0].m_isCached;
+		}
+
+		{
+			B3_PROFILE("registerMeshShape");
+
+			tinyObj->registerMeshShape(&vertices[0].xyzw[0], vertices.size(), &indices[0], indices.size(), rgbaColor,
+				textureImage1, textureWidth, textureHeight);
+		}
+        visuals->m_renderObjects.push_back(tinyObj);
+    }
 }
 
 void TinyRendererVisualShapeConverter::removeVisualShape(int collisionObjectUniqueId)

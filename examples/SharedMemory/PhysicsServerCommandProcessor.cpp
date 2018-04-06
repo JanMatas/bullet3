@@ -226,7 +226,8 @@ struct InteralUserConstraintData
 
 	InteralUserConstraintData()
 		:m_rbConstraint(0),
-		m_mbConstraint(0)
+		m_mbConstraint(0),
+		anchoredSoftBody(0)
 	{
 	}
 };

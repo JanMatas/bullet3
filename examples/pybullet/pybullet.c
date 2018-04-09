@@ -3793,6 +3793,82 @@ static PyObject* pybullet_getLinkState(PyObject* self, PyObject* args, PyObject*
 	return Py_None;
 }
 
+
+
+static PyObject* pybullet_getClothConfig(PyObject* self, PyObject* args, PyObject* keywds)
+{
+
+
+	int bodyUniqueId = -1;
+	int i;
+	int j;
+	b3PhysicsClientHandle sm = 0;
+
+	int physicsClientId = 0;
+	static char* kwlist[] = {"bodyUniqueId", "physicsClientId", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|i", kwlist, &bodyUniqueId, &physicsClientId))
+	{
+		return NULL;
+	}
+	sm = getPhysicsClient(physicsClientId);
+	if (sm == 0)
+	{
+		PyErr_SetString(SpamError, "Not connected to physics server.");
+		return NULL;
+	}
+
+	{
+		{
+			int status_type = 0;
+			b3SharedMemoryCommandHandle cmd_handle;
+			b3SharedMemoryStatusHandle status_handle;
+
+
+			cmd_handle =
+				b3RequestActualStateCommandInit(sm, bodyUniqueId);
+
+			status_handle =
+				b3SubmitClientCommandAndWaitStatus(sm, cmd_handle);
+
+			status_type = b3GetStatusType(status_handle);
+			if (status_type != CMD_ACTUAL_STATE_UPDATE_COMPLETED)
+			{
+				PyErr_SetString(SpamError, "getClothConfig failed.");
+				return NULL;
+			}
+
+
+			int returnedId;
+			const double *actualStateQ;
+			b3GetStatusActualState(
+					status_handle, &returnedId,
+					0 /* num_degree_of_freedom_q */, 0 /* num_degree_of_freedom_u */,
+					0 /*root_local_inertial_frame*/, &actualStateQ,
+					0 /* actual_state_q_dot */, 0 /* joint_reaction_forces */);
+
+			assert(returnedId > 1000);
+			PyObject* ret = PyTuple_New(4);
+			for (j = 0; j < 4; ++j) {
+				PyObject* nodePosition = PyTuple_New(3);
+				for (i = 0; i < 3; ++i)
+				{
+
+					PyTuple_SetItem(nodePosition, i,
+									PyFloat_FromDouble(actualStateQ[j*3 + i]));
+				}
+				PyTuple_SetItem(ret, j, nodePosition);
+			}
+
+			return ret;
+		}
+	}
+
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+
 static PyObject* pybullet_readUserDebugParameter(PyObject* self, PyObject* args, PyObject* keywds)
 {
 	b3SharedMemoryCommandHandle commandHandle;
@@ -8561,6 +8637,9 @@ static PyMethodDef SpamMethods[] = {
 
 	{"getJointStates", (PyCFunction)pybullet_getJointStates, METH_VARARGS | METH_KEYWORDS,
 	 "Get the state (position, velocity etc) for multiple joints on a body."},
+
+	{"getClothConfig", (PyCFunction)pybullet_getClothConfig, METH_VARARGS | METH_KEYWORDS,
+	 "Get the positions of cloth corners."},
 
 	{"getLinkState", (PyCFunction)pybullet_getLinkState, METH_VARARGS | METH_KEYWORDS,
 	"position_linkcom_world, world_rotation_linkcom,\n"

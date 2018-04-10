@@ -5081,9 +5081,25 @@ bool PhysicsServerCommandProcessor::processRequestActualStateCommand(const struc
 	}
 	int bodyUniqueId = clientCmd.m_requestActualStateInformationCommandArgument.m_bodyUniqueId;
 	InternalBodyData* body = m_data->m_bodyHandles.getHandle(bodyUniqueId);
-						
+	if (body && body->m_softBody) {
+		btSoftBody* sb = body->m_softBody;
+		SharedMemoryStatus& serverCmd = serverStatusOut;
+		// TODO HORRIBLE HACK
+		serverCmd.m_sendActualStateArgs.m_bodyUniqueId = 1000 + bodyUniqueId;
+		serverCmd.m_sendActualStateArgs.m_numLinks = 4;
+		int corner[] = {0, 29, 870, 899};
+		for (int i = 0; i < 4; i++) {
+			serverCmd.m_sendActualStateArgs.m_actualStateQ[i*3] = sb->m_nodes[corner[i]].m_x[0];
+			serverCmd.m_sendActualStateArgs.m_actualStateQ[i*3 + 1] = sb->m_nodes[corner[i]].m_x[1];
+			serverCmd.m_sendActualStateArgs.m_actualStateQ[i*3 + 2] = sb->m_nodes[corner[i]].m_x[2];
+		}
+		hasStatus = true;
+		serverStatusOut.m_type = CMD_ACTUAL_STATE_UPDATE_COMPLETED;
+		return hasStatus;
+	}
 
-	if (body && body->m_multiBody)
+
+	else if (body && body->m_multiBody)
 	{
 		btMultiBody* mb = body->m_multiBody;
 		SharedMemoryStatus& serverCmd = serverStatusOut;

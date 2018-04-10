@@ -2,6 +2,7 @@
 #define BT_MULTIBODY_WORLD_IMPORTER_H
 
 #include "../Extras/Serialize/BulletWorldImporter/btBulletWorldImporter.h"
+#include "BulletSoftBody/btSoftMultiBodyDynamicsWorld.h"
 
 class btMultiBodyWorldImporter : public btBulletWorldImporter
 {
@@ -9,7 +10,7 @@ class btMultiBodyWorldImporter : public btBulletWorldImporter
 
 public:
 
-	btMultiBodyWorldImporter(class btMultiBodyDynamicsWorld* world);
+	btMultiBodyWorldImporter(class btSoftMultiBodyDynamicsWorld* world);
 	virtual ~btMultiBodyWorldImporter();
 
 	virtual bool convertAllObjects(  bParse::btBulletFile* bulletFile2);

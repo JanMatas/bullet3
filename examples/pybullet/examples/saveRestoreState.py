@@ -1,7 +1,7 @@
 import pybullet as p
 import math, time
 import difflib,sys
-
+import pybullet_data
 numSteps = 500
 numSteps2 = 30
 p.connect(p.GUI, options="--width=1024 --height=768")

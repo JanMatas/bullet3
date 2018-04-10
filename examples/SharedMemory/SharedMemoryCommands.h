@@ -521,7 +521,7 @@ struct SendActualStateArgs
 
     double m_jointMotorForce[MAX_DEGREE_OF_FREEDOM];
     
-    double m_linkState[7*MAX_NUM_LINKS];
+    double m_linkState[7*MAX_NUM_LINKS]; // TODO HORRIBLE HACK
 	double m_linkWorldVelocities[6*MAX_NUM_LINKS];//linear velocity and angular velocity in world space (x/y/z each).
     double m_linkLocalInertialFrames[7*MAX_NUM_LINKS];
 };

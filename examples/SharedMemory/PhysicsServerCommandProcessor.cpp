@@ -3253,10 +3253,9 @@ bool PhysicsServerCommandProcessor::processRequestCameraImageCommand(const struc
 
 					for (int i=0;i<m_data->m_dynamicsWorld->getNumCollisionObjects();i++)
 					{
-						
 						btCollisionObject* colObj = m_data->m_dynamicsWorld->getCollisionObjectArray()[i];
 						btCollisionShape* collisionShape = colObj->getCollisionShape();
-						if (collisionShape->getShapeType()==SOFTBODY_SHAPE_PROXYTYPE && collisionShape->getUserIndex() >=0) {
+						if (collisionShape->getShapeType()==SOFTBODY_SHAPE_PROXYTYPE) {
 							btAlignedObjectArray<GLInstanceVertex> gfxVertices;
 							btAlignedObjectArray<int> indices;
 							b3Assert(collisionShape->getUserPointer());

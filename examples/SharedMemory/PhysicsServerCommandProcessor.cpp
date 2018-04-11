@@ -7974,8 +7974,9 @@ bool PhysicsServerCommandProcessor::processCreateUserConstraintCommand(const str
 
 						// );
 						btVector3 pivot(0, 0, 0);
-						b3Printf("Appenfing anchor (%g, %g, %g) - (%g, %g, %g)", parentRb->getWorldTransform().getOrigin()[0], parentRb->getWorldTransform().getOrigin()[1], parentRb->getWorldTransform().getOrigin()[2]
-							,psb->m_nodes[bestIndex].m_x[0],psb->m_nodes[bestIndex].m_x[1],psb->m_nodes[bestIndex].m_x[2])	;					
+						if (bestDistance > 0.003) {
+							return hasStatus;
+						}
 						psb->appendAnchor(bestIndex,parentRb, pivot, false, 1.5);
 						InteralUserConstraintData userConstraintData;
 						userConstraintData.anchoredSoftBody = psb;

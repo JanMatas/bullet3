@@ -1223,10 +1223,13 @@ void TinyRendererVisualShapeConverter::resetAll()
 void TinyRendererVisualShapeConverter::changeShapeTexture(int objectUniqueId, int jointIndex, int shapeIndex, int textureUniqueId)
 {
 	btAssert(textureUniqueId < m_data->m_textures.size());
+
 	if (textureUniqueId >= 0 && textureUniqueId < m_data->m_textures.size())
 	{
+
 		for (int n = 0; n < m_data->m_swRenderInstances.size(); n++)
 		{
+
 			TinyRendererObjectArray** visualArrayPtr = m_data->m_swRenderInstances.getAtIndex(n);
 			if (0 == visualArrayPtr)
 				continue;//can this ever happen?
@@ -1234,6 +1237,7 @@ void TinyRendererVisualShapeConverter::changeShapeTexture(int objectUniqueId, in
 
 			if (visualArray->m_objectUniqueId == objectUniqueId && visualArray->m_linkIndex == jointIndex)
 			{
+
 				for (int v = 0; v < visualArray->m_renderObjects.size(); v++)
 				{
 					TinyRenderObjectData* renderObj = visualArray->m_renderObjects[v];
@@ -1256,6 +1260,7 @@ int TinyRendererVisualShapeConverter::registerTexture(unsigned char* texels, int
     texData.textureData1 = texels;
 	texData.m_isCached = false;
     m_data->m_textures.push_back(texData);
+
     return m_data->m_textures.size()-1;
 }
 

@@ -1570,7 +1570,6 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 	{
 		color[i] = pybullet_internalGetFloatFromSequence(colorSeq, i);
 	}
-	printf("color1: %f\n", color[0] );
 	int statusType;
 	b3SharedMemoryCommandHandle command = b3CreateClothCommandInit(sm, corners, resolution, color, fixedCorners);
 	if (angularStiffness > 0)

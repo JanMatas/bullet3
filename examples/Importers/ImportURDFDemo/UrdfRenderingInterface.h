@@ -95,7 +95,7 @@ struct UrdfRenderingInterface
 	virtual int registerTexture(unsigned char* texels, int width, int height)=0;
 	
 	
-	virtual void registerMeshShape(int collisionObjectUniqueId, int bodyUniqueId,btAlignedObjectArray<GLInstanceVertex>& vertices, btAlignedObjectArray<int>& indices)=0;
+	virtual void registerMeshShape(int collisionObjectUniqueId, int bodyUniqueId,btAlignedObjectArray<GLInstanceVertex>& vertices, btAlignedObjectArray<int>& indices, btVector3& color)=0;
 
 };
 

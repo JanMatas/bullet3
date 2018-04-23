@@ -1488,7 +1488,9 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 	int physicsClientId = 0;
 	PyObject* cornersObj = 0;
 	PyObject* resolutionObj = 0;
+	PyObject* colorObj = 0;
 	int resolution[2];
+	double color[3];
 	double corners[12];
 	int fixedCorners;
 	double angularStiffness = -1;
@@ -1496,9 +1498,9 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 	double damping = -1;
 	double mass = -1;
 	double collisionMargin = -1;
-	static char* kwlist[] = {"corners", "resolution", "fixedCorners", "mass", "linearStiffness", "angularStiffness", "damping", "collisionMargin", "physicsClientId", NULL};
+	static char* kwlist[] = {"corners", "resolution", "color", "fixedCorners", "mass", "linearStiffness", "angularStiffness", "damping", "collisionMargin", "physicsClientId", NULL};
 	int bodyUniqueId = -1;
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "OOi|dddddi", kwlist, &cornersObj, &resolutionObj, &fixedCorners, &mass, &linearStiffness, &angularStiffness, &damping, &collisionMargin, &physicsClientId))
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "OOOi|dddddi", kwlist, &cornersObj, &resolutionObj, &colorObj, &fixedCorners, &mass, &linearStiffness, &angularStiffness, &damping, &collisionMargin, &physicsClientId))
 	{
 		return NULL;
 	}
@@ -1511,6 +1513,7 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 	}
 	PyObject* cornersSeq = 0;
 	PyObject* resolutionSeq = 0;
+	PyObject* colorSeq = 0;
 
 	// Corners handling
 	cornersSeq = PySequence_Fast(cornersObj, "expected a sequence of corner point coordinates");
@@ -1549,8 +1552,27 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 		resolution[i] = pybullet_internalGetIntFromSequence(resolutionSeq, i);
 	}
 
+
+	// color handling
+	if (colorObj == 0)
+	{
+		PyErr_SetString(SpamError, "expected color in a sequence");
+		return NULL;
+	}
+	colorSeq = PySequence_Fast(colorObj, "expected color in a sequence");
+	if (PySequence_Size(colorSeq) != 3)
+	{
+		Py_DECREF(colorSeq);
+		PyErr_SetString(SpamError, "Number of elements in color sequence must be 3.");
+		return NULL;
+	}
+	for (i = 0; i < 3; i++)
+	{
+		color[i] = pybullet_internalGetFloatFromSequence(colorSeq, i);
+	}
+	printf("color1: %f\n", color[0] );
 	int statusType;
-	b3SharedMemoryCommandHandle command = b3CreateClothCommandInit(sm, corners, resolution, fixedCorners);
+	b3SharedMemoryCommandHandle command = b3CreateClothCommandInit(sm, corners, resolution, color, fixedCorners);
 	if (angularStiffness > 0)
 	{
 		b3CreateClothSetAngularStiffness(command, angularStiffness);

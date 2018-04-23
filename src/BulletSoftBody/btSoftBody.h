@@ -673,6 +673,7 @@ public:
 	btDbvt					m_fdbvt;		// Faces tree
 	btDbvt					m_cdbvt;		// Clusters tree
 	tClusterArray			m_clusters;		// Clusters
+	btVector3				m_color;
 
 	btAlignedObjectArray<bool>m_clusterConnectivity;//cluster connectivity, for self-collision
 

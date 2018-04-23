@@ -1114,7 +1114,7 @@ void TinyRendererVisualShapeConverter::copyCameraImageData(unsigned char* pixels
     }    
 }
 
-void TinyRendererVisualShapeConverter::registerMeshShape(int collisionObjectUniqueId, int bodyUniqueId,btAlignedObjectArray<GLInstanceVertex>& vertices, btAlignedObjectArray<int>& indices)
+void TinyRendererVisualShapeConverter::registerMeshShape(int collisionObjectUniqueId, int bodyUniqueId,btAlignedObjectArray<GLInstanceVertex>& vertices, btAlignedObjectArray<int>& indices, btVector3& color)
 
 {
 	removeVisualShape(collisionObjectUniqueId);
@@ -1131,7 +1131,7 @@ void TinyRendererVisualShapeConverter::registerMeshShape(int collisionObjectUniq
 
     TinyRendererObjectArray* visuals = *visualsPtr;
 	visuals->m_objectUniqueId = bodyUniqueId;
-    float rgbaColor[4] = {100,0,0,100};
+    float rgbaColor[4] = {color[0],color[1],color[2], 255};
 	b3VisualShapeData visualShape;
 	visualShape.m_objectUniqueId = bodyUniqueId;
 	visualShape.m_linkIndex = linkIndex;
@@ -1153,19 +1153,17 @@ void TinyRendererVisualShapeConverter::registerMeshShape(int collisionObjectUniq
 		int textureWidth=0;
 		int textureHeight=0;
 		bool isCached = false;
-		if (textures.size())
-		{
-			textureImage1 = textures[0].textureData1;
-			textureWidth = textures[0].m_width;
-			textureHeight = textures[0].m_height;
-			isCached = textures[0].m_isCached;
-		}
+
 
 		{
 			B3_PROFILE("registerMeshShape");
 
 			tinyObj->registerMeshShape(&vertices[0].xyzw[0], vertices.size(), &indices[0], indices.size(), rgbaColor,
 				textureImage1, textureWidth, textureHeight);
+			// if (m_data->m_textures.size() > 0) {
+			// 	int lastIndex = m_data->m_textures.size() - 1;
+			// 	tinyObj->m_model->setDiffuseTextureFromData(m_data->m_textures[lastIndex].textureData1, m_data->m_textures[lastIndex].m_width, m_data->m_textures[lastIndex].m_height);
+			// }
 		}
         visuals->m_renderObjects.push_back(tinyObj);
     }

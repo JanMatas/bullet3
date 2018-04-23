@@ -484,7 +484,8 @@ struct b3LoadSoftBodyResultArgs
 struct CreateClothArgs
 {
 	double m_corners[12];  // 4 corners with 3 coords each
-	int m_resolution[2];
+    int m_resolution[2];
+	int m_color[3];
 	int m_fixedCorners;
 	double m_angularStiffness;
 	double m_linearStiffness;

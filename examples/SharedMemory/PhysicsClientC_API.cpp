@@ -310,7 +310,7 @@ B3_SHARED_API int b3LoadSoftBodySetCollisionMargin(b3SharedMemoryCommandHandle c
     return 0;
 }
 
-B3_SHARED_API b3SharedMemoryCommandHandle b3CreateClothCommandInit(b3PhysicsClientHandle physClient, double corners[], int resolution[], int fixedCorners)
+B3_SHARED_API b3SharedMemoryCommandHandle b3CreateClothCommandInit(b3PhysicsClientHandle physClient, double corners[], int resolution[], double color[], int fixedCorners)
 {
 	PhysicsClient* cl = (PhysicsClient* ) physClient;
 	b3Assert(cl);
@@ -327,6 +327,10 @@ B3_SHARED_API b3SharedMemoryCommandHandle b3CreateClothCommandInit(b3PhysicsClie
 		for (int i = 0; i < 2; ++i) {
 			command->m_createClothArguments.m_resolution[i] = resolution[i];
 		}
+        for (int i = 0; i < 3; ++i) {
+            command->m_createClothArguments.m_color[i] = color[i];
+            
+        }
 		command->m_createClothArguments.m_fixedCorners = fixedCorners;
 		return (b3SharedMemoryCommandHandle) command;
 	}

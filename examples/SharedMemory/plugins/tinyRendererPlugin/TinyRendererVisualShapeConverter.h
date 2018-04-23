@@ -54,7 +54,7 @@ struct TinyRendererVisualShapeConverter : public UrdfRenderingInterface
 	
 
 	virtual void syncTransform(int shapeUid, const class btTransform& worldTransform, const class btVector3& localScaling);
-	virtual void registerMeshShape(int collisionObjectUniqueId, int bodyUniqueId,btAlignedObjectArray<GLInstanceVertex>& vertices, btAlignedObjectArray<int>& indices);
+	virtual void registerMeshShape(int collisionObjectUniqueId, int bodyUniqueId,btAlignedObjectArray<GLInstanceVertex>& vertices, btAlignedObjectArray<int>& indices, btVector3& color);
 
 };
 

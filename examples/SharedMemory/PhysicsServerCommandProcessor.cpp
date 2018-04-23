@@ -3276,14 +3276,15 @@ bool PhysicsServerCommandProcessor::processRequestCameraImageCommand(const struc
 									{
 										gfxVertices[currentIndex].normal[j] = psb->m_faces[i].m_n[k]->m_n[j];
 									}
-									for (int j = 0; j < 2; j++)
-									{
-										gfxVertices[currentIndex].uv[j] = 0.5;  //we don't have UV info...
-									}
+
+									btScalar u = btAtan2(gfxVertices[currentIndex].normal[0], gfxVertices[currentIndex].normal[2]) / (2 * SIMD_PI) + 0.5;
+									btScalar v = gfxVertices[currentIndex].normal[1] * 0.5 + 0.5;
+									gfxVertices[currentIndex].uv[0] = u;  //we don't have UV info...
+									gfxVertices[currentIndex].uv[1] = v;  //we don't have UV info...
 									indices.push_back(currentIndex);
 								}
 							}
-							m_data->m_pluginManager.getRenderInterface()->registerMeshShape(i, i,gfxVertices, indices);
+							m_data->m_pluginManager.getRenderInterface()->registerMeshShape(i, i,gfxVertices, indices, psb->m_color);
 							continue;
 						}
 						m_data->m_pluginManager.getRenderInterface()->syncTransform(colObj->getBroadphaseHandle()->getUid(),colObj->getWorldTransform(),colObj->getCollisionShape()->getLocalScaling());
@@ -5944,6 +5945,10 @@ bool PhysicsServerCommandProcessor::processCreateClothCommand(const struct Share
 		InternalBodyHandle* bodyHandle = m_data->m_bodyHandles.getHandle(bodyUniqueId);
 		bodyHandle->m_softBody = psb;
 		serverStatusOut.m_createClothResultArguments.m_objectUniqueId = bodyUniqueId;
+		for (int i = 0; i < 3; i++) {
+			psb->m_color[i] = clientCmd.m_createClothArguments.m_color[i];
+		}
+
 		serverStatusOut.m_type = CMD_CREATE_CLOTH_COMPLETED;
 	}
 #endif
@@ -8837,7 +8842,7 @@ bool PhysicsServerCommandProcessor::processLoadTextureCommand(const struct Share
 			int uid = -1;
 			if (m_data->m_pluginManager.getRenderInterface())
 			{
-				m_data->m_pluginManager.getRenderInterface()->loadTextureFile(relativeFileName);
+				uid = m_data->m_pluginManager.getRenderInterface()->loadTextureFile(relativeFileName);
 			}
 			if(uid>=0)
 			{

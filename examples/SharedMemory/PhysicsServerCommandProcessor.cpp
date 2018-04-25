@@ -9809,6 +9809,7 @@ void PhysicsServerCommandProcessor::stepSimulationRealTime(double dtInSec,const 
 void PhysicsServerCommandProcessor::resetSimulation()
 {
 	//clean up all data
+	m_data->m_dynamicsWorld->getWorldInfo().m_sparsesdf.Reset();
 
 	if (m_data && m_data->m_guiHelper)
 	{

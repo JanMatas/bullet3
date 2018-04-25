@@ -1532,7 +1532,10 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 	for (i = 0; i < 12; i++)
 	{
 		corners[i] = pybullet_internalGetFloatFromSequence(cornersSeq, i);
+
 	}
+	Py_DECREF(cornersSeq);
+
 
 	// Resolution handling
 	if (resolutionObj == 0)
@@ -1541,6 +1544,7 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 		return NULL;
 	}
 	resolutionSeq = PySequence_Fast(resolutionObj, "expected resolution in a sequence");
+
 	if (PySequence_Size(resolutionSeq) != 2)
 	{
 		Py_DECREF(resolutionSeq);
@@ -1550,7 +1554,10 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 	for (i = 0; i < 2; i++)
 	{
 		resolution[i] = pybullet_internalGetIntFromSequence(resolutionSeq, i);
+
 	}
+
+	Py_DECREF(resolutionSeq);
 
 
 	// color handling
@@ -1560,6 +1567,7 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 		return NULL;
 	}
 	colorSeq = PySequence_Fast(colorObj, "expected color in a sequence");
+
 	if (PySequence_Size(colorSeq) != 3)
 	{
 		Py_DECREF(colorSeq);
@@ -1569,7 +1577,10 @@ static PyObject* pybullet_createCloth(PyObject* self, PyObject* args, PyObject* 
 	for (i = 0; i < 3; i++)
 	{
 		color[i] = pybullet_internalGetFloatFromSequence(colorSeq, i);
+
 	}
+	Py_DECREF(colorSeq);
+
 	int statusType;
 	b3SharedMemoryCommandHandle command = b3CreateClothCommandInit(sm, corners, resolution, color, fixedCorners);
 	if (angularStiffness > 0)
@@ -2113,7 +2124,26 @@ static PyObject* pybullet_setJointMotorControlArray(PyObject* self, PyObject* ar
 			};
 		}
 
-
+		if (targetVelocitiesSeq)
+		{
+			Py_DECREF(targetVelocitiesSeq);
+		}
+		if (targetPositionsSeq)
+		{
+			Py_DECREF(targetPositionsSeq);
+		}
+		if (forcesSeq)
+		{
+			Py_DECREF(forcesSeq);
+		}
+		if (kpsSeq)
+		{
+			Py_DECREF(kpsSeq);
+		}
+		if (kdsSeq)
+			{
+			Py_DECREF(kdsSeq);
+			}
 		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, commandHandle);
 
 		if (targetVelocitiesSeq)
@@ -3672,6 +3702,8 @@ static PyObject* pybullet_getJointStates(PyObject* self, PyObject* args, PyObjec
 					return NULL;
 				}
 			}
+			Py_DECREF(jointIndicesSeq);
+
 			return resultListJointState;
 		}
 	}
@@ -3890,8 +3922,7 @@ static PyObject* pybullet_getClothConfig(PyObject* self, PyObject* args, PyObjec
 					0 /* num_degree_of_freedom_q */, 0 /* num_degree_of_freedom_u */,
 					0 /*root_local_inertial_frame*/, &actualStateQ,
 					0 /* actual_state_q_dot */, 0 /* joint_reaction_forces */);
-
-			assert(returnedId > 1000);
+			assert(returnedId >= 1000);
 			PyObject* ret = PyTuple_New(4);
 			for (j = 0; j < 4; ++j) {
 				PyObject* nodePosition = PyTuple_New(3);
@@ -5475,6 +5506,7 @@ static PyObject* pybullet_changeTexture(PyObject* self, PyObject* args, PyObject
 		free(pixelBuffer);
 		statusHandle = b3SubmitClientCommandAndWaitStatus(sm, commandHandle);
 		statusType = b3GetStatusType(statusHandle);
+		Py_DECREF(seqPixels);
 		if (statusType == CMD_CLIENT_COMMAND_COMPLETED)
 		{
 			Py_INCREF(Py_None);
@@ -7604,7 +7636,22 @@ static PyObject* pybullet_renderImageObsolete(PyObject* self, PyObject* args)
 			PyTuple_SetItem(pyResultList, 4, pylistSeg);
 			return pyResultList;
 #endif  //PYBULLET_USE_NUMPY
+			if (objViewMat) {
+				Py_DECREF(objViewMat);
+			}
 
+			if (objProjMat) {
+				Py_DECREF(objProjMat);
+			}
+			if (objCameraPos) {
+				Py_DECREF(objCameraPos);
+			}
+				if (objTargetPos) {
+				Py_DECREF(objTargetPos);
+			}
+				if (objCameraUp) {
+				Py_DECREF(objCameraUp);
+			}
 			return pyResultList;
 		}
 	}
@@ -8149,11 +8196,14 @@ static PyObject* pybullet_executePluginCommand(PyObject* self,
 			float val = pybullet_internalGetFloatFromSequence(seqFloatArgs,i);
 			b3CustomCommandExecuteAddFloatArgument(command, val);
 		}
+
 		
 	}
 	
 	statusHandle = b3SubmitClientCommandAndWaitStatus(sm, command);
 	statusType = b3GetStatusPluginCommandResult(statusHandle);
+	Py_DECREF(intArgs);
+	Py_DECREF(floatArgs);
 	return PyInt_FromLong(statusType);
 }
 

@@ -212,6 +212,7 @@ struct	btSparseSdf
 			c->d[o[0]+1][o[1]+0][o[2]+1],
 			c->d[o[0]+1][o[1]+1][o[2]+1],
 			c->d[o[0]+0][o[1]+1][o[2]+1]};
+		
 		/* Normal	*/ 
 #if 1
 		const btScalar	gx[]={	d[1]-d[0],d[2]-d[3],

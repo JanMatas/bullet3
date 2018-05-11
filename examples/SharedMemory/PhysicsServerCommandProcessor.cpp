@@ -2157,9 +2157,9 @@ struct ProgrammaticUrdfInterface : public URDFImporterInterface
 		UrdfModel model;// = m_data->m_urdfParser.getModel();
 		UrdfLink link;
 
-		if (m_createBodyArgs.m_linkVisualShapeUniqueIds[linkIndex]>=0)
+		if (m_createBodyArgs.m_linkVisualShapeUniqueIds[urdfIndex]>=0)
 		{
-			const InternalVisualShapeHandle* visHandle = m_data->m_userVisualShapeHandles.getHandle(m_createBodyArgs.m_linkVisualShapeUniqueIds[linkIndex]);
+			const InternalVisualShapeHandle* visHandle = m_data->m_userVisualShapeHandles.getHandle(m_createBodyArgs.m_linkVisualShapeUniqueIds[urdfIndex]);
 			if (visHandle)
 			{
 				for (int i=0;i<visHandle->m_visualShapes.size();i++)
@@ -2603,7 +2603,7 @@ bool PhysicsServerCommandProcessor::processImportedObjects(const char* fileName,
 			bodyHandle->m_bodyName = u2b.getBodyName();
             btVector3 localInertiaDiagonal(0,0,0);
             int urdfLinkIndex = u2b.getRootLinkIndex();
-            u2b.getMassAndInertia(urdfLinkIndex, mass,localInertiaDiagonal,bodyHandle->m_rootLocalInertialFrame);
+            u2b.getMassAndInertia2(urdfLinkIndex, mass,localInertiaDiagonal,bodyHandle->m_rootLocalInertialFrame,flags);
         }
 
 
@@ -2665,7 +2665,7 @@ bool PhysicsServerCommandProcessor::processImportedObjects(const char* fileName,
 				btScalar mass;
                 btVector3 localInertiaDiagonal(0,0,0);
                 btTransform localInertialFrame;
-				u2b.getMassAndInertia(urdfLinkIndex, mass,localInertiaDiagonal,localInertialFrame);
+				u2b.getMassAndInertia2(urdfLinkIndex, mass,localInertiaDiagonal,localInertialFrame, flags);
 				bodyHandle->m_linkLocalInertialFrames.push_back(localInertialFrame);
 
 				std::string* linkName = new std::string(u2b.getLinkName(urdfLinkIndex).c_str());
@@ -9874,6 +9874,12 @@ void PhysicsServerCommandProcessor::resetSimulation()
 	//clean up all data
 	m_data->m_dynamicsWorld->getWorldInfo().m_sparsesdf.Reset();
 
+#ifndef SKIP_SOFT_BODY_MULTI_BODY_DYNAMICS_WORLD
+	if (m_data && m_data->m_dynamicsWorld)
+	{
+		m_data->m_dynamicsWorld->getWorldInfo().m_sparsesdf.Reset();
+	}
+#endif
 	if (m_data && m_data->m_guiHelper)
 	{
 		m_data->m_guiHelper->removeAllGraphicsInstances();

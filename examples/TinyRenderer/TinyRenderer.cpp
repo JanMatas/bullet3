@@ -150,6 +150,7 @@ struct Shader : public IShader {
 		float index_x = b3Max(float(0.0), b3Min(float(m_width-1), p[0]));
 		float index_y = b3Max(float(0.0), b3Min(float(m_height-1), p[1]));
 		int idx = int(index_x) + int(index_y)*m_width; // index in the shadowbuffer array
+	idx = std::max(0, std::min(idx, m_shadowBuffer->size() - 1));
         float shadow = 0.8+0.2*(m_shadowBuffer->at(idx)<-depth+0.05); // magic coeff to avoid z-fighting
         
         Vec3f bn = (varying_nrm*bar).normalize();

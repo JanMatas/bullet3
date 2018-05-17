@@ -8029,7 +8029,7 @@ bool PhysicsServerCommandProcessor::processCreateUserConstraintCommand(const str
 								float d = psb->m_nodes[nodeIndex].m_x[axis] - parentRb->getWorldTransform().getOrigin()[axis];
 								distance += d * d;
 							}
-							if (distance < bestDistance)
+							if (distance < bestDistance && psb->m_nodes[nodeIndex].m_x[2] + 0.01 >= parentRb->getWorldTransform().getOrigin()[2] )
 							{
 								bestIndex = nodeIndex;
 								bestDistance = distance;

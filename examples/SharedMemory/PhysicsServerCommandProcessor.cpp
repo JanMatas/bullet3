@@ -5150,7 +5150,23 @@ bool PhysicsServerCommandProcessor::processRequestActualStateCommand(const struc
 		// TODO HORRIBLE HACK
 		serverCmd.m_sendActualStateArgs.m_bodyUniqueId = 1000 + bodyUniqueId;
 		serverCmd.m_sendActualStateArgs.m_numLinks = 4;
-		int corner[] = {0, 29, 870, 899};
+		int corner[4];
+		if (sb->m_nodes.size() == 900) 
+		{
+			int newarr [] = {0, 29, 870, 899};
+			std::copy(newarr, newarr + 4, corner);
+
+		} else if (sb->m_nodes.size() == 500) 
+		{
+			int newarr [] = {0, 4, 495, 499};
+			std::copy(newarr, newarr + 4, corner);
+		} else 
+		{
+			b3Printf("Wrong cloth size\n");
+			hasStatus = true;
+			return hasStatus;
+		}
+
 		for (int i = 0; i < 4; i++) {
 			serverCmd.m_sendActualStateArgs.m_actualStateQ[i*3] = sb->m_nodes[corner[i]].m_x[0];
 			serverCmd.m_sendActualStateArgs.m_actualStateQ[i*3 + 1] = sb->m_nodes[corner[i]].m_x[1];

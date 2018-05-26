@@ -127,7 +127,7 @@ B3_SHARED_API	int b3ChangeDynamicsInfoSetContactStiffnessAndDamping(b3SharedMemo
 B3_SHARED_API	int b3ChangeDynamicsInfoSetFrictionAnchor(b3SharedMemoryCommandHandle commandHandle,int bodyUniqueId,int linkIndex, int frictionAnchor);
 B3_SHARED_API	int b3ChangeDynamicsInfoSetCcdSweptSphereRadius(b3SharedMemoryCommandHandle commandHandle,int bodyUniqueId,int linkIndex, double ccdSweptSphereRadius);
 
-B3_SHARED_API	b3SharedMemoryCommandHandle b3InitCreateUserConstraintCommand(b3PhysicsClientHandle physClient, int parentBodyIndex, int parentJointIndex, int childBodyIndex, int childJointIndex, struct b3JointInfo* info);
+B3_SHARED_API	b3SharedMemoryCommandHandle b3InitCreateUserConstraintCommand(b3PhysicsClientHandle physClient, int parentBodyIndex, int parentJointIndex, int childBodyIndex, int childJointIndex, double maxDistance, struct b3JointInfo* info);
 
 ///return a unique id for the user constraint, after successful creation, or -1 for an invalid constraint id
 B3_SHARED_API	int b3GetStatusUserConstraintUniqueId(b3SharedMemoryStatusHandle statusHandle);

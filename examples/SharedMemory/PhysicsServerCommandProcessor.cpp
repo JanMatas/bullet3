@@ -8035,14 +8035,9 @@ bool PhysicsServerCommandProcessor::processCreateUserConstraintCommand(const str
 								bestDistance = distance;
 							}
 						}
-						// btVector3 pivot(
-						// 	parentRb->getCenterOfMassPosition()[0] - psb->m_nodes[bestIndex].m_x[0],
-						// 	parentRb->getCenterOfMassPosition()[1] - psb->m_nodes[bestIndex].m_x[1],
-						// 	parentRb->getCenterOfMassPosition()[2] - psb->m_nodes[bestIndex].m_x[2]
-
-						// );
+	
 						btVector3 pivot(0, 0, 0);
-						if (bestDistance > 0.003) {
+						if (bestDistance > clientCmd.m_userConstraintArguments.m_maxDistance) {
 							return hasStatus;
 						}
 						psb->appendAnchor(bestIndex,parentRb, pivot, false, 1.5);

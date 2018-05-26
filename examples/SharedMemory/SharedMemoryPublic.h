@@ -273,6 +273,8 @@ struct b3UserConstraint
 	int m_gearAuxLink;
 	double m_relativePositionTarget;
 	double m_erp;
+	double m_maxDistance;
+
 };
 
 struct b3BodyInfo

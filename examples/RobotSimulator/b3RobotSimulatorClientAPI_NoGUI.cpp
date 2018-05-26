@@ -568,7 +568,7 @@ int b3RobotSimulatorClientAPI_NoGUI::createConstraint(int parentBodyIndex, int p
 	b3Assert(b3CanSubmitCommand(m_data->m_physicsClientHandle));
 	if (b3CanSubmitCommand(m_data->m_physicsClientHandle))
 	{
-		statusHandle = b3SubmitClientCommandAndWaitStatus(m_data->m_physicsClientHandle, b3InitCreateUserConstraintCommand(m_data->m_physicsClientHandle, parentBodyIndex, parentJointIndex, childBodyIndex, childJointIndex, jointInfo));
+		statusHandle = b3SubmitClientCommandAndWaitStatus(m_data->m_physicsClientHandle, b3InitCreateUserConstraintCommand(m_data->m_physicsClientHandle, parentBodyIndex, parentJointIndex, childBodyIndex, childJointIndex, 0.001, jointInfo));
 		int statusType = b3GetStatusType(statusHandle);
 		if (statusType == CMD_USER_CONSTRAINT_COMPLETED)
 		{

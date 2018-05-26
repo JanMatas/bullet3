@@ -2406,7 +2406,7 @@ B3_SHARED_API	int b3ChangeDynamicsInfoSetCcdSweptSphereRadius(b3SharedMemoryComm
 
 
 
-B3_SHARED_API	b3SharedMemoryCommandHandle b3InitCreateUserConstraintCommand(b3PhysicsClientHandle physClient, int parentBodyIndex, int parentJointIndex, int childBodyIndex, int childJointIndex, struct b3JointInfo* info)
+B3_SHARED_API	b3SharedMemoryCommandHandle b3InitCreateUserConstraintCommand(b3PhysicsClientHandle physClient, int parentBodyIndex, int parentJointIndex, int childBodyIndex, int childJointIndex, double maxDistance, struct b3JointInfo* info)
 {
     PhysicsClient* cl = (PhysicsClient* ) physClient;
     b3Assert(cl);
@@ -2429,6 +2429,7 @@ B3_SHARED_API	b3SharedMemoryCommandHandle b3InitCreateUserConstraintCommand(b3Ph
         command->m_userConstraintArguments.m_jointAxis[i] = info->m_jointAxis[i];
     }
     command->m_userConstraintArguments.m_jointType = info->m_jointType;
+    command->m_userConstraintArguments.m_maxDistance = maxDistance;
     return (b3SharedMemoryCommandHandle)command;
 }
 

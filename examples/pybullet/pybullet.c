@@ -6917,6 +6917,7 @@ static PyObject* pybullet_createUserConstraint(PyObject* self, PyObject* args, P
 	b3SharedMemoryStatusHandle statusHandle;
 	int statusType;
 	int physicsClientId = 0;
+	double maxDistance = 0.001;
 	b3PhysicsClientHandle sm = 0;
 	static char* kwlist[] = {"parentBodyUniqueId", "parentLinkIndex",
 							 "childBodyUniqueId", "childLinkIndex",
@@ -6926,16 +6927,18 @@ static PyObject* pybullet_createUserConstraint(PyObject* self, PyObject* args, P
 							 "childFramePosition",
 							 "parentFrameOrientation",
 							 "childFrameOrientation",
+							 "maxDistance",
 							 "physicsClientId",
 							 NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, keywds, "iiiiiOOO|OOi", kwlist, &parentBodyUniqueId, &parentLinkIndex,
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "iiiiiOOO|OOdi", kwlist, &parentBodyUniqueId, &parentLinkIndex,
 									 &childBodyUniqueId, &childLinkIndex,
 									 &jointType, &jointAxisObj,
 									 &parentFramePositionObj,
 									 &childFramePositionObj,
 									 &parentFrameOrientationObj,
 									 &childFrameOrientationObj,
+									 &maxDistance,
 									 &physicsClientId))
 	{
 		return NULL;
@@ -6975,7 +6978,7 @@ static PyObject* pybullet_createUserConstraint(PyObject* self, PyObject* args, P
 	jointInfo.m_jointAxis[1] = jointAxis[1];
 	jointInfo.m_jointAxis[2] = jointAxis[2];
 
-	commandHandle = b3InitCreateUserConstraintCommand(sm, parentBodyUniqueId, parentLinkIndex, childBodyUniqueId, childLinkIndex, &jointInfo);
+	commandHandle = b3InitCreateUserConstraintCommand(sm, parentBodyUniqueId, parentLinkIndex, childBodyUniqueId, childLinkIndex, maxDistance, &jointInfo);
 	statusHandle = b3SubmitClientCommandAndWaitStatus(sm, commandHandle);
 	statusType = b3GetStatusType(statusHandle);
 	if (statusType == CMD_USER_CONSTRAINT_COMPLETED)

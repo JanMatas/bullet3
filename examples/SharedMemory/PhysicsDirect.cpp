@@ -917,7 +917,7 @@ void PhysicsDirect::postProcessStatus(const struct SharedMemoryStatus& serverCmd
 
 	case CMD_USER_CONSTRAINT_FAILED:
 	{
-		b3Warning("createConstraint failed");
+		// b3Warning("createConstraint failed");
 		break;
 	}
 	
